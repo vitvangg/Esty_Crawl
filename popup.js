@@ -1,5 +1,6 @@
 document.getElementById('scrape').addEventListener('click', () => {
-  console.log("Button clicked"); // Thêm dòng này để kiểm tra sự kiện bấm nút
+  console.log("Button clicked");
+  document.getElementById('progress-container').style.display = 'block'; // Hiển thị thanh tiến trình
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     chrome.scripting.executeScript({
       target: { tabId: tabs[0].id },
@@ -9,9 +10,6 @@ document.getElementById('scrape').addEventListener('click', () => {
 });
 
 function scrapeAndDisplayProducts() {
-  // Thông báo cho người dùng biết đang crawl dữ liệu
-  alert("Đang crawl dữ liệu, vui lòng chờ...");
-
   async function scrapeProductDetails() {
     const products = [];
     const productContainers = document.querySelectorAll('div.v2-listing-card__info');
@@ -22,7 +20,10 @@ function scrapeAndDisplayProducts() {
       return;
     }
 
-    for (let container of productContainers) {
+    const totalProducts = productContainers.length;
+
+    for (let i = 0; i < productContainers.length; i++) {
+      const container = productContainers[i];
       const product = {};
 
       // Extract title
@@ -53,7 +54,7 @@ function scrapeAndDisplayProducts() {
 
           // Extract all image links
           const imageListContainer = productPage.querySelectorAll('img.wt-animated');
-          product.imageLinks = Array.from(imageListContainer).map(imgElement => 
+          product.imageLinks = Array.from(imageListContainer).map(imgElement =>
             imgElement.getAttribute('data-src-delay') || imgElement.src
           );
         } catch (error) {
@@ -62,11 +63,25 @@ function scrapeAndDisplayProducts() {
       }
 
       products.push(product);
+
+      // Cập nhật thanh tiến trình
+      const progressPercentage = ((i + 1) / totalProducts) * 100;
+      chrome.runtime.sendMessage({ action: 'updateProgress', progress: progressPercentage });
     }
 
-    console.log(products); // Thêm dòng này để kiểm tra dữ liệu sản phẩm
+    console.log(products);
     chrome.runtime.sendMessage({ action: 'displayProducts', products });
   }
 
   scrapeProductDetails();
 }
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action === 'updateProgress') {
+    const progressBar = document.getElementById('progress-bar');
+    progressBar.style.width = `${message.progress}%`;
+    if (message.progress === 100) {
+      chrome.tabs.create({ url: 'results.html' }); // Mở trang results.html khi hoàn tất
+    }
+  }
+});

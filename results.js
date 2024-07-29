@@ -42,30 +42,60 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         if (selectedProducts.length > 0) {
-          const worksheet = generateWorksheet(selectedProducts);
-          downloadXLSX(worksheet, 'products.xlsx');
+          const xlsxContent = generateXLSX(selectedProducts);
+          downloadXLSX(xlsxContent, 'products.xlsx');
         } else {
           alert("Please select at least one product to download.");
         }
       });
 
-      function generateWorksheet(products) {
-        const data = products.map(product => ({
-          Title: product.title,
-          Images: product.imageLinks.join('\n'),
-          Description: product.description,
-          Tags: product.tags.map(tag => tag.trim()).join(', ')
-        }));
+      function generateXLSX(products) {
+        // Xác định số lượng imageLinks lớn nhất
+        const maxImages = Math.max(...products.map(product => product.imageLinks.length));
+        
+        // Tạo tiêu đề cho các cột
+        const headers = ['Title', 'Description', 'Tags', ...Array.from({ length: maxImages }, (_, i) => `ImageLink ${i + 1}`)];
+        
+        // Tạo dữ liệu cho bảng
+        const data = products.map(product => {
+          const row = {
+            Title: product.title,
+            Description: product.description,
+            Tags: product.tags.map(tag => tag.trim()).join(', ')
+          };
+          product.imageLinks.forEach((link, index) => {
+            row[`ImageLink ${index + 1}`] = link;
+          });
+          return row;
+        });
 
-        const worksheet = XLSX.utils.json_to_sheet(data);
-        return worksheet;
+        // Thêm các cột hình ảnh còn thiếu với giá trị rỗng
+        data.forEach(row => {
+          for (let i = 1; i <= maxImages; i++) {
+            if (!row.hasOwnProperty(`ImageLink ${i}`)) {
+              row[`ImageLink ${i}`] = '';
+            }
+          }
+        });
+
+        const worksheet = XLSX.utils.json_to_sheet(data, { header: headers });
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Products');
+
+        const xlsxContent = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+        return xlsxContent;
       }
 
-      function downloadXLSX(worksheet, filename) {
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "Products");
-        const wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-        saveAs(new Blob([wbout], { type: "application/octet-stream" }), filename);
+      function downloadXLSX(xlsxContent, filename) {
+        const blob = new Blob([xlsxContent], { type: 'application/octet-stream' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.setAttribute('hidden', '');
+        a.setAttribute('href', url);
+        a.setAttribute('download', filename);
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
       }
     }
   });

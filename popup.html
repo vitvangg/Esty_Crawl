@@ -19,11 +19,25 @@
     button:hover {
       background-color: #45a049;
     }
+    #progress-container {
+      width: 100%;
+      background-color: #f3f3f3;
+      margin: 10px 0;
+      display: none; /* Ẩn mặc định */
+    }
+    #progress-bar {
+      width: 0%;
+      height: 30px;
+      background-color: #4caf50;
+    }
   </style>
 </head>
 <body>
   <h1>Etsy Search Titles Scraper</h1>
-  <button id="scrape">Scrape Titles</button>
+  <button id="scrape">Scrape</button>
+  <div id="progress-container">
+    <div id="progress-bar"></div>
+  </div>
   <script src="popup.js"></script>
 </body>
 </html>
