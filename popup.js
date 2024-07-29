@@ -53,7 +53,7 @@ function scrapeAndDisplayProducts() {
           product.tags = Array.from(tagsElements).map(tagElement => tagElement.innerText);
 
           // Extract all image links
-          const imageListContainer = productPage.querySelectorAll('img.wt-animated');
+          const imageListContainer = productPage.querySelectorAll('img.wt-max-width-full');
           product.imageLinks = Array.from(imageListContainer).map(imgElement =>
             imgElement.getAttribute('data-src-delay') || imgElement.src
           );
