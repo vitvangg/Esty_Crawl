@@ -54,14 +54,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const maxImages = Math.max(...products.map(product => product.imageLinks.length));
         
         // Tạo tiêu đề cho các cột
-        const headers = ['Title', 'Description', 'Tags', ...Array.from({ length: maxImages }, (_, i) => `ImageLink ${i + 1}`)];
+        const headers = ['Title', 'Description', 'Tags','Select Options', ...Array.from({ length: maxImages }, (_, i) => `ImageLink ${i + 1}`)];
         
         // Tạo dữ liệu cho bảng
         const data = products.map(product => {
           const row = {
             Title: product.title,
             Description: product.description,
-            Tags: product.tags.map(tag => tag.trim()).join(', ')
+            Tags: product.tags.map(tag => tag.trim()).join(', '),
+            'Select Options': product.selectOptions ? product.selectOptions.join(', ') : ''
           };
           product.imageLinks.forEach((link, index) => {
             row[`ImageLink ${index + 1}`] = link;

@@ -57,6 +57,19 @@ function scrapeAndDisplayProducts() {
           product.imageLinks = Array.from(imageListContainer).map(imgElement =>
             imgElement.getAttribute('data-src-delay') || imgElement.src
           );
+          // Extract select options
+          // Extract select options
+        // Extract select options
+        const selectElements = productPage.querySelectorAll('select.wt-select__element[data-variation-number]');
+        const selectOptions = [];
+        selectElements.forEach(selectElement => {
+          const options = selectElement.querySelectorAll('option:not([value=""])');
+          options.forEach(option => {
+            selectOptions.push(option.innerText.trim());
+          });
+        });
+        product.selectOptions = selectOptions;
+
         } catch (error) {
           console.error(`Failed to fetch product page: ${productUrl}`, error);
         }
