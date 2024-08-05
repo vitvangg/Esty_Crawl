@@ -47,28 +47,31 @@ function scrapeAndDisplayProducts() {
           const descriptionElement = productPage.querySelector('p[data-product-details-description-text-content]');
           product.description = descriptionElement ? descriptionElement.innerText.trim() : '';
 
+          // Remove emojis from description using regex
+          const emojiRegex = /[\u{1F600}-\u{1F64F}]/gu;
+          product.description = product.description.replace(emojiRegex, '');
+
           // Extract tags
           const tagsContainer = productPage.querySelector('.tags-section-container.tag-cards-section-container-with-images');
           const tagsElements = tagsContainer ? tagsContainer.querySelectorAll('h3.tag-card-title') : [];
           product.tags = Array.from(tagsElements).map(tagElement => tagElement.innerText);
 
           // Extract all image links
-          const imageListContainer = productPage.querySelectorAll('img.wt-max-width-full');
+          const imageListContainer = productPage.querySelectorAll('img.wt-max-width-full.wt-horizontal-center.wt-vertical-center.carousel-image.wt-rounded');
           product.imageLinks = Array.from(imageListContainer).map(imgElement =>
             imgElement.getAttribute('data-src-delay') || imgElement.src
           );
+
           // Extract select options
-          // Extract select options
-        // Extract select options
-        const selectElements = productPage.querySelectorAll('select.wt-select__element[data-variation-number]');
-        const selectOptions = [];
-        selectElements.forEach(selectElement => {
-          const options = selectElement.querySelectorAll('option:not([value=""])');
-          options.forEach(option => {
-            selectOptions.push(option.innerText.trim());
+          const selectElements = productPage.querySelectorAll('select.wt-select__element[data-variation-number]');
+          const selectOptions = [];
+          selectElements.forEach(selectElement => {
+            const options = selectElement.querySelectorAll('option:not([value=""])');
+            options.forEach(option => {
+              selectOptions.push(option.innerText.trim());
+            });
           });
-        });
-        product.selectOptions = selectOptions;
+          product.selectOptions = selectOptions;
 
         } catch (error) {
           console.error(`Failed to fetch product page: ${productUrl}`, error);
