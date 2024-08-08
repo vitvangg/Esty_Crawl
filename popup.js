@@ -44,8 +44,18 @@ function scrapeAndDisplayProducts() {
           const response = await fetch(productUrl);
           const productPageHtml = await response.text();
           const productPage = new DOMParser().parseFromString(productPageHtml, 'text/html');
+          // const descriptionElement = productPage.querySelector('p[data-product-details-description-text-content]');
+          // product.description = descriptionElement ? descriptionElement.innerText.trim() : '';
           const descriptionElement = productPage.querySelector('p[data-product-details-description-text-content]');
-          product.description = descriptionElement ? descriptionElement.innerText.trim() : '';
+          if (descriptionElement) {
+            // Convert innerHTML to text, keeping <br> tags
+            product.description = descriptionElement.innerHTML.trim()
+              .replace(/<\/?[^>]+(>|$)/g, (match) => match.toLowerCase() === '<br>' ? '\n' : '') // Replace <br> with newline
+              .replace(/[\u{1F600}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F77F}]/gu, ''); // Remove emojis
+          } else {
+            product.description = '';
+          }
+          
 
           // Remove emojis from description using regex
           const emojiRegex = /[\u{1F600}-\u{1F64F}]/gu;
